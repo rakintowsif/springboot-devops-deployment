@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  tm-core:
+    image: "${REGISTRY}/${REPO_CORE}:${IMAGE_TAG_CORE}"
+    container_name: tm-core-dkr-dev
+    restart: unless-stopped
+    ports:
+      - "8050:8050"
+    networks:
+      - tm-network
+    volumes:
+      - /var/web/html_new/tm_core_dev:/app/config:ro
+    logging:
+      driver: awslogs
+      options:
+        awslogs-region: eu-west-1
+        awslogs-group: /tm/core/java/dev
+        awslogs-stream-prefix: tm-core-dkr-dev
+        awslogs-create-group: "true"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8050/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+
+networks:
+  tm-network:
+    external: true

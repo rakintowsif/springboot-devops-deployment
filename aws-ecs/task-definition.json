@@ -1,0 +1,72 @@
+{
+  "family": "tm-core-prod-new",
+  "containerDefinitions": [
+    {
+      "name": "tm-core",
+      "image": "365848160691.dkr.ecr.eu-west-1.amazonaws.com/tm-core-repo:fdc0719",
+      "cpu": 0,
+      "portMappings": [
+        {
+          "containerPort": 7050,
+          "hostPort": 7050,
+          "protocol": "tcp",
+          "name": "tm-core-7050-tcp"
+        }
+      ],
+      "essential": true,
+      "entryPoint": [
+        "/bin/sh",
+        "-c"
+      ],
+      "command": [
+        "aws s3 cp s3://team-mart-secret/production/tm-core/application.properties /app/config/application.properties && exec java -XX:+UseContainerSupport org.springframework.boot.loader.launch.JarLauncher"
+      ],
+      "environment": [],
+      "mountPoints": [
+        {
+          "sourceVolume": "tm-core-config",
+          "containerPath": "/app/config",
+          "readOnly": false
+        }
+      ],
+      "volumesFrom": [],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/tm/core/java/prod",
+          "awslogs-create-group": "true",
+          "awslogs-region": "eu-west-1",
+          "awslogs-stream-prefix": "tm-core"
+        }
+      },
+      "healthCheck": {
+        "command": [
+          "CMD-SHELL",
+          "curl -f http://localhost:7050/actuator/health || exit 1"
+        ],
+        "interval": 20,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 180
+      },
+      "systemControls": []
+    }
+  ],
+  "taskRoleArn": "arn:aws:iam::365848160691:role/ecs-cicd-deployer-role",
+  "executionRoleArn": "arn:aws:iam::365848160691:role/ecs-cicd-deployer-role",
+  "networkMode": "awsvpc",
+  "volumes": [
+    {
+      "name": "tm-core-config",
+      "host": {
+        "sourcePath": "/var/web/html_new/tm_core_prod"
+      }
+    }
+  ],
+  "placementConstraints": [],
+  "requiresCompatibilities": [
+    "EC2"
+  ],
+  "cpu": "1536",
+  "memory": "3072"
+}
