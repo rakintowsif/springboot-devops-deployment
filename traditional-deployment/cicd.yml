@@ -1,0 +1,38 @@
+name: DEV Traditional Deployment
+on:
+  push:
+    branches:
+      - dev
+jobs:
+  deploy-dev:
+    if: github.ref == 'refs/heads/dev'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Deploy to DEV Server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST_DEV }}
+          username: ${{ secrets.USERNAME }}
+          port: ${{ secrets.PORT }}
+          key: ${{ secrets.SSHKEY_PRIVATE_DEV }}
+          script: |
+            cd /var/web/html_new/dev_esim/eSim-Backend
+            git checkout .
+            git pull origin dev
+
+            cd /var/web/html_new/dev_esim/eSim-Backend/Esim
+            rm -rf target/
+            mvn -B package --file pom.xml
+
+            if [ -f target/Esim-0.0.1-SNAPSHOT.jar ]; then
+              mv target/Esim-0.0.1-SNAPSHOT.jar ../Esim-0.0.1-SNAPSHOT.jar
+            else
+              echo "Build failed: JAR not found."
+              exit 1
+            fi
+
+            sudo chown -R nginx:esim /var/web/html_new/dev_esim/eSim-Backend
+            sudo chmod -R 770 /var/web/html_new/dev_esim/eSim-Backend
+            sudo chmod -R g+s /var/web/html_new/dev_esim/eSim-Backend
+            sudo systemctl restart javamaven.service

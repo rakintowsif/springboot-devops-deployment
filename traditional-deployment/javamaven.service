@@ -1,0 +1,16 @@
+[Unit]
+Description=Spring Boot Maven
+After=syslog.target network.target
+
+[Service]
+User=root
+Type=simple
+WorkingDirectory=/var/web/html_new/dev_esim/eSim-Backend/Esim
+ExecStart=/bin/bash -c "/usr/bin/java -jar /var/web/html_new/dev_esim/eSim-Backend/Esim/target/Esim-0.0.1-SNAPSHOT.jar"
+Restart=always
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=javamaven
+
+[Install]
+WantedBy=multi-user.target
